@@ -1,0 +1,344 @@
+<!DOCTYPE html>
+<html lang="ro">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="color-scheme" content="light dark">
+<title>Catalog elev</title>
+<style>
+:root{
+  --bg:#f2f2f7;--card:#fff;--text:#1c1c1e;--muted:#6e6e73;--line:#e3e3e8;
+  --accent:#0a84ff;--accent-text:#fff;--danger:#d92d20;--good:#1a8f4c;--chip:#eef2f7;
+}
+@media (prefers-color-scheme:dark){
+  :root{--bg:#000;--card:#1c1c1e;--text:#f5f5f7;--muted:#9a9aa1;--line:#2c2c2e;--accent:#0a84ff;--danger:#ff6961;--good:#32d074;--chip:#2c2c2e}
+}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;background:var(--bg);color:var(--text);
+  font:16px/1.4 -apple-system,BlinkMacSystemFont,"SF Pro Text","Segoe UI",Roboto,sans-serif}
+body{padding:env(safe-area-inset-top) 16px calc(env(safe-area-inset-bottom) + 24px)}
+#app{max-width:640px;margin:0 auto}
+header{display:flex;align-items:center;gap:8px;padding:14px 0 10px;min-height:56px}
+header h1{font-size:24px;margin:0;flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+header .sub{font-size:13px;color:var(--muted);font-weight:400;display:block}
+button{font:inherit;color:inherit;border:0;background:none;cursor:pointer}
+.btn{background:var(--accent);color:var(--accent-text);padding:12px 18px;border-radius:12px;font-weight:600}
+.btn.block{display:block;width:100%}
+.btn.sec{background:var(--chip);color:var(--text)}
+.btn.danger{background:var(--danger);color:#fff}
+.btn.ghost{background:none;color:var(--accent);padding:8px 10px}
+.icon{padding:8px 10px;color:var(--accent);font-size:17px}
+.card{background:var(--card);border-radius:14px;margin:0 0 12px;overflow:hidden}
+.row{display:flex;align-items:center;gap:10px;padding:14px 16px;width:100%;text-align:left;border-bottom:1px solid var(--line)}
+.row:last-child{border-bottom:0}
+.row .main{flex:1;min-width:0}
+.row .t{font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.row .s{font-size:13px;color:var(--muted)}
+.avg{font-size:20px;font-weight:700;font-variant-numeric:tabular-nums}
+.avg.low{color:var(--danger)}
+.avg.none{color:var(--muted);font-weight:400}
+.seg{display:flex;background:var(--chip);border-radius:10px;padding:2px;margin:0 0 12px}
+.seg button{flex:1;padding:8px 4px;border-radius:8px;font-weight:600;font-size:15px;color:var(--muted)}
+.seg button.on{background:var(--card);color:var(--text);box-shadow:0 1px 3px rgba(0,0,0,.15)}
+.summary{padding:18px 16px;text-align:center}
+.summary .lbl{color:var(--muted);font-size:14px}
+.summary .big{font-size:48px;font-weight:800;font-variant-numeric:tabular-nums;line-height:1.15}
+.summary .big.low{color:var(--danger)}
+.summary .note{color:var(--muted);font-size:13px}
+.chips{display:flex;flex-wrap:wrap;gap:6px;margin-top:6px}
+.chip{background:var(--chip);border-radius:8px;padding:4px 10px;font-weight:600;font-variant-numeric:tabular-nums;font-size:15px}
+.chip.sel{background:var(--danger);color:#fff}
+.chip.low{color:var(--danger)}
+.chip.sel.low{color:#fff}
+.empty{text-align:center;color:var(--muted);padding:28px 16px}
+.banner{background:#fff4d6;color:#6b4e00;border-radius:12px;padding:10px 14px;margin-bottom:12px;font-size:14px}
+.foot{display:flex;gap:8px;justify-content:center;margin-top:8px}
+/* sheet */
+#overlay{position:fixed;inset:0;background:rgba(0,0,0,.4);display:none;align-items:flex-end;justify-content:center;z-index:10}
+#overlay.show{display:flex}
+#sheet{background:var(--card);width:100%;max-width:640px;border-radius:18px 18px 0 0;
+  padding:18px 16px calc(env(safe-area-inset-bottom) + 18px);max-height:88vh;overflow:auto}
+#sheet h2{margin:0 0 12px;font-size:20px}
+label{display:block;font-size:13px;color:var(--muted);margin:10px 0 4px}
+input[type=text]{width:100%;font:inherit;font-size:16px;padding:12px;border-radius:10px;
+  border:1px solid var(--line);background:var(--bg);color:var(--text)}
+.btns{display:flex;gap:8px;margin-top:16px}
+.btns .btn{flex:1}
+.grid{display:grid;grid-template-columns:repeat(5,1fr);gap:8px;margin-top:10px}
+.grid button{background:var(--chip);border-radius:10px;padding:12px 0;font-size:18px;font-weight:700}
+.grid button:active{background:var(--accent);color:#fff}
+.sect{margin-top:14px;padding-top:12px;border-top:1px solid var(--line)}
+.sect:first-of-type{border-top:0;margin-top:4px;padding-top:0}
+.sect .hd{display:flex;justify-content:space-between;align-items:baseline}
+.selbar{display:flex;align-items:center;gap:8px;margin-top:10px;padding:8px 10px;background:var(--chip);border-radius:10px}
+.selbar span{flex:1}
+p.msg{margin:0 0 4px}
+</style>
+</head>
+<body>
+<div id="app"></div>
+<div id="overlay"><div id="sheet"></div></div>
+<input type="file" id="file" accept="application/json,.json" hidden>
+
+<script>
+'use strict';
+const KEY = 'catalogElev.v1';
+const state = { classes: [], cid: null, sem: 1, sheet: null, sel: null };
+let persistOk = true;
+
+/* ---------- persistență ---------- */
+function load() {
+  try {
+    const raw = localStorage.getItem(KEY);
+    if (raw) {
+      const d = JSON.parse(raw);
+      if (d && Array.isArray(d.classes)) state.classes = d.classes;
+    }
+  } catch (e) { persistOk = false; }
+}
+function save() {
+  try { localStorage.setItem(KEY, JSON.stringify({ classes: state.classes })); }
+  catch (e) { persistOk = false; }
+}
+
+/* ---------- utilitare ---------- */
+const uid = () => Date.now().toString(36) + Math.random().toString(36).slice(2, 7);
+const esc = s => String(s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+const $ = id => document.getElementById(id);
+const getClass = () => state.classes.find(c => c.id === state.cid);
+const getSub = sid => (getClass() || { subjects: [] }).subjects.find(s => s.id === sid);
+const fmt = n => n == null ? '—' : n.toFixed(2).replace('.', ',');
+const lowCls = n => n != null && n < 5 ? ' low' : '';
+
+/* ---------- calcule ---------- */
+const mean = a => a.length ? a.reduce((s, x) => s + x, 0) / a.length : null;
+const subSem = (s, k) => mean(s.grades[k]);
+function subYear(s) {
+  const a = subSem(s, 1), b = subSem(s, 2);
+  return a != null && b != null ? (a + b) / 2 : null;
+}
+const subVal = (s, sem) => sem === 'y' ? subYear(s) : subSem(s, sem);
+const general = (c, sem) => mean(c.subjects.map(s => subVal(s, sem)).filter(v => v != null));
+
+/* ---------- randare ---------- */
+function render() {
+  const c = getClass();
+  $('app').innerHTML = (persistOk ? '' :
+    '<div class="banner">Datele nu pot fi salvate în acest mod de navigare. Folosește „Export date" ca să nu le pierzi.</div>')
+    + (c ? classView(c) : homeView());
+  if (state.sheet && state.sheet.t === 'subject') renderSheet();
+}
+
+function homeView() {
+  const list = state.classes.map(c => {
+    const g1 = general(c, 1), g2 = general(c, 2);
+    return `<button class="row" data-act="open-class" data-id="${c.id}">
+      <div class="main"><div class="t">${esc(c.name)}</div>
+      <div class="s">${esc(c.year)} · ${c.subjects.length} materii</div></div>
+      <div class="s">S1 ${fmt(g1)}<br>S2 ${fmt(g2)}</div><span class="s">›</span></button>`;
+  }).join('');
+  return `<header><h1>Catalog elev</h1><button class="btn" data-act="add-class">+ Clasă</button></header>
+    ${state.classes.length ? `<div class="card">${list}</div>` :
+      '<div class="card empty">Nicio clasă adăugată.<br>Apasă „+ Clasă" ca să începi.</div>'}
+    <div class="foot"><button class="btn ghost" data-act="export">Export date</button>
+    <button class="btn ghost" data-act="import">Import date</button></div>`;
+}
+
+function classView(c) {
+  const g = general(c, state.sem);
+  const label = { 1: 'Media generală – Semestrul I', 2: 'Media generală – Semestrul II', y: 'Media generală anuală' }[state.sem];
+  const withAvg = c.subjects.filter(s => subVal(s, state.sem) != null).length;
+  const note = state.sem === 'y'
+    ? `calculată din ${withAvg} din ${c.subjects.length} materii (cele cu note în ambele semestre)`
+    : `calculată din ${withAvg} din ${c.subjects.length} materii (cele cu note)`;
+  const rows = c.subjects.map(s => {
+    const v = subVal(s, state.sem);
+    const sub = state.sem === 'y'
+      ? `S1 ${fmt(subSem(s, 1))} · S2 ${fmt(subSem(s, 2))}`
+      : (s.grades[state.sem].length ? s.grades[state.sem].join(' · ') : 'fără note');
+    return `<button class="row" data-act="open-sub" data-id="${s.id}">
+      <div class="main"><div class="t">${esc(s.name)}</div><div class="s">${esc(sub)}</div></div>
+      <div class="avg${v == null ? ' none' : lowCls(v)}">${fmt(v)}</div></button>`;
+  }).join('');
+  const seg = [[1, 'Sem. I'], [2, 'Sem. II'], ['y', 'An']].map(([k, t]) =>
+    `<button class="${state.sem === k ? 'on' : ''}" data-act="sem" data-v="${k}">${t}</button>`).join('');
+  return `<header><button class="icon" data-act="home">‹ Clase</button>
+      <h1>${esc(c.name)}<span class="sub">${esc(c.year)}</span></h1>
+      <button class="icon" data-act="edit-class">Editează</button></header>
+    <div class="seg">${seg}</div>
+    <div class="card summary"><div class="lbl">${label}</div>
+      <div class="big${lowCls(g)}">${fmt(g)}</div><div class="note">${note}</div></div>
+    ${c.subjects.length ? `<div class="card">${rows}</div>` :
+      '<div class="card empty">Nicio materie. Adaugă prima materie.</div>'}
+    <button class="btn block" data-act="add-sub">+ Materie</button>`;
+}
+
+function renderSheet() {
+  const sh = state.sheet, el = $('sheet');
+  if (!sh) { $('overlay').classList.remove('show'); el.innerHTML = ''; return; }
+  $('overlay').classList.add('show');
+  if (sh.t === 'form') {
+    el.innerHTML = `<h2>${esc(sh.title)}</h2>
+      ${sh.fields.map((f, i) => `<label for="f${i}">${esc(f.label)}</label>
+        <input type="text" id="f${i}" value="${esc(f.value || '')}" placeholder="${esc(f.ph || '')}" maxlength="60" autocomplete="off">`).join('')}
+      <div class="btns"><button class="btn sec" data-act="close">Anulează</button>
+      <button class="btn" data-act="submit">${esc(sh.ok || 'Salvează')}</button></div>
+      ${sh.del ? `<div class="btns"><button class="btn danger" data-act="del-ask">${esc(sh.del)}</button></div>` : ''}`;
+    const f0 = $('f0'); if (f0 && !sh.focused) { sh.focused = true; setTimeout(() => f0.focus(), 50); }
+  } else if (sh.t === 'confirm') {
+    el.innerHTML = `<h2>${esc(sh.title)}</h2><p class="msg">${esc(sh.msg)}</p>
+      <div class="btns"><button class="btn sec" data-act="close">Anulează</button>
+      <button class="btn danger" data-act="confirm-yes">${esc(sh.ok)}</button></div>`;
+  } else if (sh.t === 'subject') {
+    const s = getSub(sh.sid);
+    if (!s) { state.sheet = null; return renderSheet(); }
+    const sems = state.sem === 'y' ? [1, 2] : [state.sem];
+    el.innerHTML = `<h2>${esc(s.name)}</h2>` + sems.map(k => {
+      const arr = s.grades[k], m = mean(arr);
+      const chips = arr.length ? arr.map((n, i) => {
+        const on = state.sel && state.sel.k === k && state.sel.i === i;
+        return `<button class="chip${on ? ' sel' : ''}${n < 5 ? ' low' : ''}" data-act="sel-grade" data-k="${k}" data-i="${i}">${n}</button>`;
+      }).join('') : '<span class="s" style="color:var(--muted)">Fără note</span>';
+      const selbar = state.sel && state.sel.k === k ? `<div class="selbar"><span>Nota ${arr[state.sel.i]} selectată</span>
+        <button class="btn danger" data-act="del-grade">Șterge</button>
+        <button class="btn sec" data-act="unsel">Renunță</button></div>` : '';
+      const grid = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map(n =>
+        `<button data-act="add-grade" data-k="${k}" data-n="${n}">${n}</button>`).join('');
+      return `<div class="sect"><div class="hd"><strong>Semestrul ${k === 1 ? 'I' : 'II'}</strong>
+        <span class="avg${m == null ? ' none' : lowCls(m)}">${fmt(m)}</span></div>
+        <div class="chips">${chips}</div>${selbar}
+        <div class="s" style="color:var(--muted);margin-top:10px">Adaugă notă:</div><div class="grid">${grid}</div></div>`;
+    }).join('') + `<div class="btns"><button class="btn sec" data-act="rename-sub">Redenumește</button>
+      <button class="btn danger" data-act="del-sub-ask">Șterge materia</button></div>
+      <div class="btns"><button class="btn" data-act="close">Gata</button></div>`;
+  }
+}
+
+/* ---------- sheet helpers ---------- */
+function openSheet(sh) { state.sheet = sh; state.sel = null; renderSheet(); }
+function closeSheet() { state.sheet = null; state.sel = null; renderSheet(); }
+function openForm(title, fields, onOk, extra) {
+  openSheet(Object.assign({ t: 'form', title, fields, onOk }, extra || {}));
+}
+function openConfirm(title, msg, ok, onYes) {
+  openSheet({ t: 'confirm', title, msg, ok, onYes });
+}
+function formValues() {
+  return state.sheet.fields.map((f, i) => $('f' + i).value.trim());
+}
+
+/* ---------- acțiuni ---------- */
+const actions = {
+  home() { state.cid = null; render(); },
+  'open-class'(d) { state.cid = d.id; state.sem = 1; render(); },
+  sem(d) { state.sem = d.v === 'y' ? 'y' : Number(d.v); render(); },
+  'add-class'() {
+    openForm('Clasă nouă', [
+      { label: 'Clasa', ph: 'ex. a VII-a B' },
+      { label: 'An școlar', ph: 'ex. 2025–2026' }
+    ], ([name, year]) => {
+      if (!name) return false;
+      const c = { id: uid(), name, year, subjects: [] };
+      state.classes.push(c); state.cid = c.id; state.sem = 1;
+      save(); closeSheet(); render();
+    }, { ok: 'Adaugă' });
+  },
+  'edit-class'() {
+    const c = getClass();
+    openForm('Editează clasa', [
+      { label: 'Clasa', value: c.name }, { label: 'An școlar', value: c.year }
+    ], ([name, year]) => {
+      if (!name) return false;
+      c.name = name; c.year = year; save(); closeSheet(); render();
+    }, { del: 'Șterge clasa', onDel() {
+      openConfirm('Ștergi clasa?', `„${c.name}" și toate materiile și notele ei vor fi șterse definitiv.`, 'Șterge', () => {
+        state.classes = state.classes.filter(x => x.id !== c.id);
+        state.cid = null; save(); closeSheet(); render();
+      });
+    } });
+  },
+  'add-sub'() {
+    openForm('Materie nouă', [{ label: 'Denumire', ph: 'ex. Matematică' }], ([name]) => {
+      if (!name) return false;
+      const s = { id: uid(), name, grades: { 1: [], 2: [] } };
+      getClass().subjects.push(s); save(); closeSheet(); render();
+    }, { ok: 'Adaugă' });
+  },
+  'open-sub'(d) { openSheet({ t: 'subject', sid: d.id }); },
+  'rename-sub'() {
+    const s = getSub(state.sheet.sid);
+    openForm('Redenumește materia', [{ label: 'Denumire', value: s.name }], ([name]) => {
+      if (!name) return false;
+      s.name = name; save(); closeSheet(); render();
+    });
+  },
+  'del-sub-ask'() {
+    const s = getSub(state.sheet.sid);
+    openConfirm('Ștergi materia?', `„${s.name}" și toate notele ei vor fi șterse definitiv.`, 'Șterge', () => {
+      const c = getClass(); c.subjects = c.subjects.filter(x => x.id !== s.id);
+      save(); closeSheet(); render();
+    });
+  },
+  'add-grade'(d) {
+    getSub(state.sheet.sid).grades[d.k].push(Number(d.n));
+    state.sel = null; save(); render();
+  },
+  'sel-grade'(d) {
+    const k = Number(d.k), i = Number(d.i);
+    const same = state.sel && state.sel.k === k && state.sel.i === i;
+    state.sel = same ? null : { k, i }; renderSheet();
+  },
+  unsel() { state.sel = null; renderSheet(); },
+  'del-grade'() {
+    getSub(state.sheet.sid).grades[state.sel.k].splice(state.sel.i, 1);
+    state.sel = null; save(); render();
+  },
+  submit() {
+    if (state.sheet.onOk(formValues()) === false) $('f0').focus();
+  },
+  'del-ask'() { state.sheet.onDel(); },
+  'confirm-yes'() { state.sheet.onYes(); },
+  close() { closeSheet(); },
+  export() {
+    const blob = new Blob([JSON.stringify({ classes: state.classes }, null, 2)], { type: 'application/json' });
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = 'catalog-elev-' + new Date().toISOString().slice(0, 10) + '.json';
+    document.body.appendChild(a); a.click(); a.remove();
+    setTimeout(() => URL.revokeObjectURL(a.href), 1000);
+  },
+  import() { $('file').value = ''; $('file').click(); }
+};
+
+document.addEventListener('click', e => {
+  const t = e.target.closest('[data-act]');
+  if (t && actions[t.dataset.act]) { actions[t.dataset.act](t.dataset); return; }
+  if (e.target === $('overlay')) closeSheet();
+});
+document.addEventListener('keydown', e => {
+  if (e.key === 'Enter' && state.sheet && state.sheet.t === 'form') actions.submit();
+  if (e.key === 'Escape' && state.sheet) closeSheet();
+});
+
+$('file').addEventListener('change', e => {
+  const f = e.target.files[0]; if (!f) return;
+  const r = new FileReader();
+  r.onload = () => {
+    let d;
+    try { d = JSON.parse(r.result); } catch (err) { d = null; }
+    const ok = d && Array.isArray(d.classes) && d.classes.every(c =>
+      c && typeof c.name === 'string' && Array.isArray(c.subjects) && c.subjects.every(s =>
+        s && s.grades && Array.isArray(s.grades[1]) && Array.isArray(s.grades[2])));
+    if (!ok) { openConfirm('Fișier invalid', 'Fișierul nu este un export valid de la această aplicație.', 'Închide', closeSheet); return; }
+    openConfirm('Înlocuiești datele?', `Datele curente (${state.classes.length} clase) vor fi înlocuite cu cele din fișier (${d.classes.length} clase).`, 'Înlocuiește', () => {
+      state.classes = d.classes; state.cid = null; save(); closeSheet(); render();
+    });
+  };
+  r.readAsText(f);
+});
+
+load();
+render();
+</script>
+</body>
+</html>
